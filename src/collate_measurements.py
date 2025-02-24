@@ -39,6 +39,14 @@ class Measurement:
   pressure: float
   
   @classmethod
+  def from_json(cls, json_dict: dict) -> 'Measurement':
+    return Measurement(
+      timestamp=datetime.datetime.fromisoformat(json_dict['timestamp']),
+      humidity=json_dict['humidity'],
+      temperature=json_dict['temperature'],
+      pressure=json_dict['pressure'])
+
+  @classmethod
   def get_csv_header(cls) -> str:
     return 'timestamp,humidity,temperature,pressure'
   
@@ -61,6 +69,18 @@ class TrainingSet:
   history: list[Measurement]
   # Future measurements, defined by --prediction_length.
   future: list[Measurement]
+  
+  @classmethod
+  def from_json(cls, json_dict: dict) -> 'TrainingSet':
+    actual = Measurement.from_json(json_dict['actual'])
+    history = []
+    for h in json_dict['history']:
+      history.append(Measurement.from_json(h))
+    future = []
+    for f in json_dict['future']:
+      future.append(Measurement.from_json(f))
+    return TrainingSet(actual, history, future)
+    
   
   def is_valid(self) -> bool:
     expected_history = _SCRAPER_RESOLUTION.value * _HISTORY_LENGTH.value
